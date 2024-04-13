@@ -1,15 +1,21 @@
-import { StyleSheet } from 'react-native';
-
-import EditScreenInfo from '@/components/EditScreenInfo';
+import { GestureResponderEvent, Pressable, StyleSheet } from 'react-native';
 import { Text, View } from '@/components/Themed';
+import ChessBoard from '@/components/ChessBoard';
+import useBoard from '@/hooks/useBoard';
 
-export default function TabOneScreen() {
+export default function PlayScreen() {
+  const {resetHighlightedMoves} = useBoard();
+
+  const handleClick = (e: GestureResponderEvent) => {
+    resetHighlightedMoves();
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
+    <Pressable style={styles.container} onPress={handleClick}>
+      <Text style={styles.title}>Chess</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+      <ChessBoard />
+    </Pressable>
   );
 }
 
@@ -18,6 +24,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'teal'
   },
   title: {
     fontSize: 20,
