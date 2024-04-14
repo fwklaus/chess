@@ -4,7 +4,7 @@ import useBoard from '@/hooks/useBoard';
 import Spacer from './Spacer';
 
 const Item = ({ item, index }: {item: any, index: number}) => {
-  const {positions, colorTiles, highlighted, highlightMoves, resetHighlightedMoves, selectedPiece, setSelectedPiece, movePiece} = useBoard();
+  const {positions, colorTiles, highlighted, highlightMoves, selectedPiece, setSelectedPiece, movePiece, resetHighlightedMoves} = useBoard();
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   let background = colorTiles(index);
@@ -49,17 +49,12 @@ const Item = ({ item, index }: {item: any, index: number}) => {
       
     if (isPiece) {
       let piece: string = targetElement.textContent ?? '';
-      // set current piece
-      // current piece will have a position property
-        // and a display property
 
       setSelectedPiece({piece, position});
       highlightMoves(piece);
     } else if (!isPiece && isHighlighted) {
-      // move the currently selected piece to the target square
-        // the current square
-      // WILL BE BROKEN until implementing Piece object 
       movePiece(selectedPiece, position);
+      resetHighlightedMoves();
     } else {
       console.log('Unreachable');
       return;

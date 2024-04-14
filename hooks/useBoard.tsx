@@ -6,12 +6,11 @@ import getCopy from '@/utils/getCopy';
 const useBoard = () => {
   const {positions, setPositions, darkSquare, setDarkSquare, highlighted, setHighlighted, selectedPiece, setSelectedPiece}: any = useContext(BoardContext);
 
-  function movePiece(piece: Piece, newPostition: MutableRefObject<any>) {
+  function movePiece(piece: Piece, newPosition: MutableRefObject<any>) {
     let positionsCopy = getCopy(positions);
-    positionsCopy[newPostition.current] = piece.piece;
+    positionsCopy[newPosition.current] = piece.piece;
     positionsCopy[piece.position.current] = '';
     setPositions(positionsCopy);
-    resetHighlightedMoves();
   }
 
   // should highlight based on the piece type
@@ -29,8 +28,6 @@ const useBoard = () => {
     setHighlighted(emptyPositions);
   }
 
-  // set highlighted to empty array
-  // happens after a move finishes
   function resetHighlightedMoves() {
     setHighlighted([]);
   }
