@@ -4,10 +4,11 @@ import ChessBoard from '@/components/ChessBoard';
 import useBoard from '@/hooks/useBoard';
 
 export default function PlayScreen() {
-  const {resetHighlightedMoves} = useBoard();
+  const {resetHighlightedMoves, resetAttackPositions} = useBoard();
 
   const handleClick = (e: GestureResponderEvent) => {
     resetHighlightedMoves();
+    resetAttackPositions();
   };
 
   return (

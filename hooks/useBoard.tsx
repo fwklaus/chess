@@ -3,8 +3,11 @@ import { BoardContext } from '@/contexts/BoardContext';
 import getCopy from '@/utils/getCopy';
 import { WHITE_PIECES, BLACK_PIECES, PIECE_TO_NAME} from '@/utils/pieceTypes';
 
+const RANKS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const FILES = [1, 2, 3, 4, 5, 6, 7, 8];
+
 const useBoard = () => {
-  const {positions, setPositions, darkSquare, setDarkSquare, highlighted, setHighlighted, selectedPiece, setSelectedPiece}: any = useContext(BoardContext);
+  const {positions, setPositions, darkSquare, setDarkSquare, highlighted, setHighlighted, selectedPiece, setSelectedPiece, attackPositions, setAttackPositions}: any = useContext(BoardContext);
 
   function movePiece(piece: Piece, newPosition: MutableRefObject<any>) {
     let positionsCopy = getCopy(positions);
@@ -17,23 +20,27 @@ const useBoard = () => {
   // elaborate switch control flow?
   function highlightMoves(piece: AllPieces, position: MutableRefObject<any>) {
     let emptyPositions: string[] = [];
+    let attackPositions: string[] = [];
 
     // narrow piece type to WhitePieces and BlackPieces
     if (isWhitePiece(piece)) {
-      emptyPositions = highLightWhiteMove(piece, position.current);
+      emptyPositions = highLightWhiteMoves(piece, position.current);
+      attackPositions = highlightWhiteAttack(piece, position.current);
     } else if (isBlackPiece(piece)) {
-      emptyPositions = highlightBlackMove(piece, position.current);
+      emptyPositions = highlightBlackMoves(piece, position.current);
+      attackPositions = highlightBlackAttack(piece, position.current);
     } else {
-      console.log('unreachable');
+      console.log('Unreachable (at highlightMoves at useBoard)');
     }
 
-    // pawn ✔️
+    // pawn ✔️ - finish pawn before attempting other pieces
     // rook
     // knight
     // bishop
     // king
     // queen
-    // setHighlighted(emptyPositions);
+    setAttackPositions(attackPositions)
+    setHighlighted(emptyPositions);
   }
 
   // function highlightMoves(piece: AllPieces) {
@@ -53,6 +60,10 @@ const useBoard = () => {
 
   function resetHighlightedMoves() {
     setHighlighted([]);
+  }
+
+  function resetAttackPositions() {
+    setAttackPositions([]);
   }
 
   // helpers
@@ -93,11 +104,17 @@ const useBoard = () => {
     && targetElement.textContent.length > 0;
   }
 
+  // moves
+
   function getPawnMove(currentPosition: string, side: "white" | "black") {
     let moves: string[] = [];
     let initialMove = isInitialPawnPosition(currentPosition)
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
+
+    if (rank.length === 0) {
+      throw new Error("Invalid Position (getPawnMove at useBoard)")
+    }
 
     if (initialMove && side === 'white') {
       [rank, rank].forEach( (_r) => {
@@ -113,14 +130,14 @@ const useBoard = () => {
       });
     } else if  (side === 'white') {
       [rank].forEach( (_r) => {
-        file += 1;
+        file -= 1;
         let move = rank + String(file);
         moves.push(move);
       });
       
     } else if (side === 'black') {
       [rank].forEach( (_r) => {
-        file -= 1;
+        file += 1;
         let move = rank + String(file);
         moves.push(move);
       });
@@ -130,11 +147,9 @@ const useBoard = () => {
       throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
     }
 
-    // if last position, promote piece to queen for simplicity
+    moves = removeBlockedPawnMoves(moves, side);
 
-    // if in attack position
-      // diagonal highlight
-        // red
+    // if last position, promote piece to queen for simplicity
 
     return moves;
   }
@@ -151,15 +166,123 @@ const useBoard = () => {
 
   }
 
-  function getKingMove(currentPosition: string) {
-
-  }
-
   function getQueenMove(currentPosition: string) {
 
   }
 
-  function highLightWhiteMove(piece: WhitePiece, position: string) {
+  function getKingMove(currentPosition: string) {
+
+  }
+
+  // attacks
+
+  function getPawnAttack(currentPosition: string, side: "white" | "black") {
+    let attacks: string[] = [];
+    let rank = rankMatcher(currentPosition);
+    let file = fileMatcher(currentPosition);
+    let rankIndex = getIndex(rank, RANKS);
+    let leftRank = RANKS[rankIndex - 1];
+    let rightRank = RANKS[rankIndex + 1];
+
+    if (rankIndex === -1) {
+      throw new Error("Invalid rank (at getPawnAttack at useBoard)")
+    }
+
+    if (side === 'white') {
+      file = file - 1;
+    } else if (side === 'black') {
+      file = file + 1;
+    } else {
+      let unreachableType: never = side;
+      throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
+    }
+
+    if (leftRank) {
+      let threatPosition1 = leftRank + String(file);
+      attacks.push(threatPosition1);
+    }
+
+    if (rightRank) {
+      let threatPosition2 = rightRank + String(file);
+      attacks.push(threatPosition2);
+    }
+
+    attacks = removeNonThreatPositionsPawn(attacks, side)
+
+    // en pissant?
+    return attacks;
+  }
+
+  function getRookAttack(currentPosition: string) {
+
+  }
+
+  function getKnightAttack(currentPosition: string) {
+
+  }
+
+  function getBishopAttack(currentPosition: string) {
+
+  }
+
+  function getQueenAttack(currentPosition: string) {
+
+  }
+
+  function getKingAttack(currentPosition: string) {
+
+  }
+
+  function highlightWhiteAttack(piece: WhitePiece, position: string) {
+    let attacks: string[] = [];
+
+    if (isPawn(piece)) {
+      attacks = getPawnAttack(position, "white");
+    } else if (isRook(piece)){
+      attacks = getRookAttack(position);
+    } else if (isKnight(piece)){
+      attacks = getKnightAttack(position);
+    } else if (isBishop(piece)){
+      attacks = getBishopAttack(position);
+    } else if (isKing(piece)){
+      attacks = getKingAttack(position);
+    } else if (isQueen(piece)){
+      attacks = getQueenAttack(position);
+    } else {
+      let unreachableType: never = piece;
+      throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
+    }
+
+
+    // debugger;
+
+    return attacks;
+  }
+
+  function highlightBlackAttack(piece: BlackPiece, position: string) {
+    let attacks: string[] = [];
+
+    if (isPawn(piece)) {
+      attacks = getPawnAttack(position, "black");
+    } else if (isRook(piece)){
+      attacks = getRookAttack(position);
+    } else if (isKnight(piece)){
+      attacks = getKnightAttack(position);
+    } else if (isBishop(piece)){
+      attacks = getBishopAttack(position);
+    } else if (isKing(piece)){
+      attacks = getKingAttack(position);
+    } else if (isQueen(piece)){
+      attacks = getQueenAttack(position);
+    } else {
+      let unreachableType: never = piece;
+      throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
+    }
+
+    return attacks;
+  }
+
+  function highLightWhiteMoves(piece: WhitePiece, position: string) {
     let moves: string[] = [];
 
     if (isPawn(piece)) {
@@ -182,7 +305,7 @@ const useBoard = () => {
     return moves;
   }
 
-  function highlightBlackMove(piece: BlackPiece, position: string) {
+  function highlightBlackMoves(piece: BlackPiece, position: string) {
     let moves: string[] = [];
 
     if (isPawn(piece)) {
@@ -212,12 +335,52 @@ const useBoard = () => {
     return white.includes(position) || black.includes(position); 
   }
 
-  let rankMatcher = (position: string) => {
-    return position.match(/[a-z]/)?.[0];
+  let rankMatcher = (position: string): string => {
+    return position.match(/[a-z]/)?.[0] || '';
   }
 
-  let fileMatcher = (position: string) => {
+  let fileMatcher = (position: string): number => {
     return Number(position.match(/[\d]/)?.[0]);
+  }
+
+  let getIndex = (value: string | number, collection: any[]): number => {
+    return collection.indexOf(value); 
+  }
+
+  // remove positions that are not a threat
+
+  function removeNonThreatPositionsPawn(attacks: string[], side: 'black' | 'white') {
+    attacks = attacks.filter(attackPosition => {
+      // if square is empty, return false
+      let occupied = positions[attackPosition];
+      if (!occupied) {
+        return false;
+      }
+
+      // if own piece, return false
+      if (side === 'white') {
+        return !isWhitePiece(occupied);
+      } else if (side === 'black') {
+        return !isBlackPiece(occupied);
+      } else {
+        let unreachableType: never = side;
+        throw new Error("Invalid side (at removeNonThreatPositionsPawn at useBoard)");
+      }
+    });
+    
+    return attacks;
+  }
+
+  // remove occupied and blocked moves
+  
+  function removeBlockedPawnMoves(moves: string[]) {
+    if (positions[moves[0]]) {
+      return [];
+    }
+
+    return moves.filter(move => {
+      return !positions[move];
+    });
   }
 
   // type predicates
@@ -267,7 +430,9 @@ const useBoard = () => {
     setHighlighted, 
     isElementPiece,
     highlightMoves,
+    attackPositions,
     setSelectedPiece,
+    resetAttackPositions,
     resetHighlightedMoves,
   };
 };

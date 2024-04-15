@@ -4,25 +4,32 @@ import useBoard from '@/hooks/useBoard';
 import Piece from './Piece';
 
 export default function Square({ item, index }: {item: string, index: number}){
-  const {positions, colorTiles, highlighted, selectedPiece, movePiece, resetHighlightedMoves, isElementPiece} = useBoard();
+  const {positions, colorTiles, highlighted, attackPositions, selectedPiece, movePiece, resetHighlightedMoves, isElementPiece, resetAttackPositions} = useBoard();
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [isThreat, setIsThreat] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   let background = colorTiles(index);
   const position = useRef(item); // references position
+  let isColoredPosition = (position: string) => position === item;
 
   useLayoutEffect(() => {
+    let currentPositionIsHighlighted = highlighted.find(isColoredPosition);
+    let currentPositionIsThreatened = attackPositions.find(isColoredPosition);
 
-    debugger;
-    let highlightedPosition = (position: string) => position === item;
-    let currentPositionIsHighlighted = highlighted.find(highlightedPosition);
     if (currentPositionIsHighlighted) {
       setIsHighlighted(true);
     } else {
       setIsHighlighted(false);
     }
-  }, [highlighted]);
 
-  useEffect(() => {}, [isHighlighted]);
+    if (currentPositionIsThreatened) {
+      setIsThreat(true);
+    } else {
+      setIsThreat(false);
+    }
+  }, [highlighted, isThreat]);
+
+  useEffect(() => {}, [isHighlighted, isThreat]);
 
   const handleMouseEnter = (event: any) => {
     let isPiece = isElementPiece(event);
@@ -43,8 +50,9 @@ export default function Square({ item, index }: {item: string, index: number}){
     } else if (!isPiece && isHighlighted) {
       movePiece(selectedPiece, position);
       resetHighlightedMoves();
+      resetAttackPositions();
     } else {
-      console.log('Unreachable');
+      console.log('Unreachable (at handleClick at Square)');
     }
   };
 
@@ -52,8 +60,9 @@ export default function Square({ item, index }: {item: string, index: number}){
     <Pressable 
       style={[
         styles.item, 
-        isHovered ? {backgroundColor: 'red'} : {backgroundColor: background},
-        isHighlighted ? {backgroundColor: 'green'} : null
+        isHovered ? {backgroundColor: 'white'} : {backgroundColor: background},
+        isHighlighted ? {backgroundColor: 'green'} : null,
+        isThreat ? {backgroundColor: 'red'} : null
       ]}
       onHoverIn={handleMouseEnter}
       onHoverOut={handleMouseLeave}

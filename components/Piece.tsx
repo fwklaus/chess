@@ -10,7 +10,7 @@ function Piece({piece, position}: GamePiece) {
       setSelectedPiece({piece, position});
       highlightMoves(piece, position);
     } else {
-      console.log('Unreachable');
+      console.log('Cannot select piece for empty square (at Piece)');
       return;
     }
   }
