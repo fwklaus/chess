@@ -31,7 +31,7 @@ declare global {
   type King = keyof typeof PIECE_ID['king'];
   type Queen = keyof typeof PIECE_ID['queen'];
 
-  interface Collection {
-    [key: string]: unknown;
-  }
+  type Collection = string[] | number[];
+
+  type Sides = 'white' | 'black';
 }
