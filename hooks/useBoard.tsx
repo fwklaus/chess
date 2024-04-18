@@ -4,11 +4,11 @@ import getCopy from '@/utils/getCopy';
 import {makeBoardByRanks, makeBoardByFiles} from '@/utils/board';
 import { WHITE_PIECES, BLACK_PIECES, PIECE_TO_NAME} from '@/utils/pieceTypes';
 
-const RANKS_BOARD = makeBoardByRanks();
 const FILES_BOARD = makeBoardByFiles();
+const RANKS_BOARD = makeBoardByRanks();
 
-const RANKS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const FILES = [1, 2, 3, 4, 5, 6, 7, 8];
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const RANKS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const useBoard = () => {
   const {positions, setPositions, darkSquare, setDarkSquare, highlighted, setHighlighted, selectedPiece, setSelectedPiece, attackPositions, setAttackPositions}: any = useContext(BoardContext);
@@ -101,33 +101,33 @@ const useBoard = () => {
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
 
-    if (rank.length === 0) {
+    if (file.length === 0) {
       throw new Error("Invalid Position (getPawnMove at useBoard)")
     }
 
     if (initialMove && side === 'white') {
-      [rank, rank].forEach( (_r) => {
-        file -= 1;
-        let move = rank + String(file);
+      [file, file].forEach( (_r) => {
+        rank += 1;
+        let move = file + String(rank);
         moves.push(move);
       });
     } else if (initialMove && side === 'black') {
-      [rank, rank].forEach( (_r) => {
-        file += 1;
-        let move = rank + String(file);
+      [file, file].forEach( (_r) => {
+        rank -= 1;
+        let move = file + String(rank);
         moves.push(move);
       });
     } else if  (side === 'white') {
-      [rank].forEach( (_r) => {
-        file -= 1;
-        let move = rank + String(file);
+      [file].forEach( (_r) => {
+        rank += 1;
+        let move = file + String(rank);
         moves.push(move);
       });
       
     } else if (side === 'black') {
-      [rank].forEach( (_r) => {
-        file += 1;
-        let move = rank + String(file);
+      [file].forEach( (_r) => {
+        rank -= 1;
+        let move = file + String(rank);
         moves.push(move);
       });
 
@@ -146,24 +146,24 @@ const useBoard = () => {
   function getRookMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
     let initialMove = isInitialRookPosition(currentPosition); // for castling
-    let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
+    let rank = rankMatcher(currentPosition);
 
-      FILES.forEach( f => {
-        let position = rank + String(f);
+    FILES.forEach( f => {
+      let position = f + String(rank);
 
-        if (position !== currentPosition) {
-          moves.push(position);
-        }
-      });
+      if (position !== currentPosition) {
+        moves.push(position);
+      }
+    });
 
-      RANKS.forEach( r => {
-        let position = r + String(file);
-        if (position !== currentPosition) {
-          moves.push(position);
-        }
+    RANKS.forEach( r => {
+      let position = file + String(r);
+      if (position !== currentPosition) {
+        moves.push(position);
+      }
 
-      });
+    });
 
     moves = removeBlockedRookMoves(currentPosition, moves, side);
 
@@ -210,36 +210,34 @@ const useBoard = () => {
     return moves;
   }
 
-  // attacks
-
   function getPawnAttack(currentPosition: string, side: Sides) {
     let attacks: string[] = [];
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
-    let rankIndex = getIndex(rank, RANKS);
-    let leftRank = RANKS[rankIndex - 1];
-    let rightRank = RANKS[rankIndex + 1];
+    let fileIndex = getIndex(file, FILES);
+    let leftFile = FILES[fileIndex - 1];
+    let rightFile = FILES[fileIndex + 1];
 
-    if (rankIndex === -1) {
+    if (fileIndex === -1) {
       throw new Error("Invalid rank (at getPawnAttack at useBoard)")
     }
 
     if (side === 'white') {
-      file = file - 1;
+      rank = rank + 1;
     } else if (side === 'black') {
-      file = file + 1;
+      rank = rank - 1;
     } else {
       let unreachableType: never = side;
       throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
     }
 
-    if (leftRank) {
-      let threatPosition1 = leftRank + String(file);
+    if (leftFile) {
+      let threatPosition1 = leftFile + String(rank);
       attacks.push(threatPosition1);
     }
 
-    if (rightRank) {
-      let threatPosition2 = rightRank + String(file);
+    if (rightFile) {
+      let threatPosition2 = rightFile + String(rank);
       attacks.push(threatPosition2);
     }
 
@@ -308,6 +306,9 @@ const useBoard = () => {
     // let backwardBlocked = false;
     // let leftBlocked = false;
     // let rightBlocked = false;
+
+
+    debugger;
     
     // use position to get rank and file
     // iterate four ways all starting at current position
@@ -521,12 +522,12 @@ const useBoard = () => {
     return moves;
   }
 
-  let rankMatcher = (position: string): string => {
-    return position.match(/[a-z]/)?.[0] || '';
-  }
-
-  let fileMatcher = (position: string): number => {
+  let rankMatcher = (position: string): number => {
     return Number(position.match(/[\d]/)?.[0]);
+  }
+  
+  let fileMatcher = (position: string): string => {
+    return position.match(/[a-z]/)?.[0] || '';
   }
 
   let getIndex = (value: string | number, collection: any[]): number => {
@@ -534,25 +535,29 @@ const useBoard = () => {
   }
 
   let getFile = (position: string) => {
+
+    debugger;
     return FILES_BOARD.find(file => file.includes(position));
   };
 
   let getRank = (position: string) => {
+
+    debugger;
     return RANKS_BOARD.find(rank => rank.includes(position));
   };
 
   // check initial position for special moves
 
   function isInitialPawnPosition(position: string) {
-    const white = ['a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7'];
-    const black = ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2'];
+    const black = ['a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7'];
+    const white = ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2'];
 
     return white.includes(position) || black.includes(position); 
   }
 
   function isInitialRookPosition(position: string) {
-    const white = ['a8', 'h8'];
-    const black = ['a1', 'h1'];
+    const white = ['a1', 'h1'];
+    const black = ['a8', 'h8'];
 
     return white.includes(position) || black.includes(position);
   }

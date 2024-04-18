@@ -1,13 +1,13 @@
-const RANKS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-let FILES = ['1', '2', '3', '4', '5', '6', '7', '8']
+const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+let RANKS = ['1', '2', '3', '4', '5', '6', '7', '8']
 
 let rankBoard: any[] = [];
 let fileBoard: any[] = [];
 
-function makeBoardByRanks() {
-  RANKS.forEach((rank) => {
+function makeBoardByFiles() {
+  FILES.forEach((rank) => {
     let row: string[] = [];
-    FILES.forEach((file) => {
+    RANKS.forEach((file) => {
       let position = rank + file;
       row.push(position);
     });
@@ -18,10 +18,10 @@ function makeBoardByRanks() {
   return rankBoard;
 }
 
-function makeBoardByFiles() {
-  FILES.forEach((file) => {
+function makeBoardByRanks() {
+  RANKS.forEach((file) => {
     let row: string[] = [];
-    RANKS.forEach((rank) => {
+    FILES.forEach((rank) => {
       let position = rank + file;
       row.push(position);
     });
@@ -31,6 +31,5 @@ function makeBoardByFiles() {
 
   return fileBoard;
 }
-
 
 export {makeBoardByRanks, makeBoardByFiles};
