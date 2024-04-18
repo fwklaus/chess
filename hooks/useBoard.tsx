@@ -23,16 +23,16 @@ const useBoard = () => {
   // highlight moves based on piece type
   // elaborate switch control flow?
   function highlightMoves(piece: AllPieces, position: MutableRefObject<any>) {
-    let emptyPositions: string[] = [];
+    let moves: string[] = [];
     let attackPositions: string[] = [];
 
     // narrow piece type to WhitePieces and BlackPieces
     if (isWhitePiece(piece)) {
-      emptyPositions = highLightMoves(piece, position.current, 'white');
-      attackPositions = highlightAttack(piece, position.current, 'white');
+      moves = highLightMoves(piece, position.current, 'white');
+      attackPositions = highlightAttack(piece, position.current, 'white', moves);
     } else if (isBlackPiece(piece)) {
-      emptyPositions = highLightMoves(piece, position.current, 'black');
-      attackPositions = highlightAttack(piece, position.current, 'black');
+      moves = highLightMoves(piece, position.current, 'black');
+      attackPositions = highlightAttack(piece, position.current, 'black', moves);
     } else {
       console.log('Unreachable (at highlightMoves at useBoard)');
     }
@@ -44,7 +44,7 @@ const useBoard = () => {
     // king
     // queen
     setAttackPositions(attackPositions)
-    setHighlighted(emptyPositions);
+    setHighlighted(moves);
   }
 
   function resetHighlightedMoves() {
@@ -165,8 +165,6 @@ const useBoard = () => {
 
       });
 
-      // remove blocked moves
-
     moves = removeBlockedRookMoves(currentPosition, moves, side);
 
     return moves;
@@ -176,6 +174,10 @@ const useBoard = () => {
     let moves: string[] = [];
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
+
+    
+
+
 
     debugger;
     return moves;
@@ -247,10 +249,190 @@ const useBoard = () => {
     return attacks;
   }
 
+
+  function getAttackPosition(row: string[], direction: 'increase' | 'decrease', attackPositions: string[], currentPosition: string, side: Sides) {
+    let blocked = false;
+    let positionIndex = getIndex(currentPosition, row);
+
+    let idx = positionIndex;
+    if (direction === 'increase') {
+      idx += 1;
+    } else if (direction === 'decrease') {
+      idx -= 1;
+    }
+
+    while (!blocked) {
+      let position = row[idx];
+      let occupied = moveIsBlocked(position);
+
+      if (occupied === undefined) {
+        blocked = true;
+        break;
+      }
+
+      debugger;
+      if (side === 'white' && occupied) {
+        if (isBlackPiece(occupied)) {
+
+          attackPositions.push(occupied);
+          blocked = true;
+        } else {
+          blocked = true;
+        }
+      } else if (side === 'black' && occupied) {
+        if (isWhitePiece(occupied)) {
+          attackPositions.push(occupied);
+          blocked = true;
+        } else {
+          blocked = true;
+        }
+      }
+
+      if (direction === 'increase') {
+        idx += 1;
+      } else if (direction === 'decrease') {
+        idx -= 1;
+      }
+    }
+  }
+
   function getRookAttack(currentPosition: string, side: Sides) {
     let attacks: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
+    // let rank = rankMatcher(currentPosition);
+    // let file = fileMatcher(currentPosition);
+    let rank = getRank(currentPosition);
+    let file = getFile(currentPosition);
+    let rankIndex = getIndex(currentPosition, rank);
+    let fileIndex = getIndex(currentPosition, file);
+    // let forwardBlocked = false;
+    // let backwardBlocked = false;
+    // let leftBlocked = false;
+    // let rightBlocked = false;
+    
+    // use position to get rank and file
+    // iterate four ways all starting at current position
+    // iterate until a piece is encountered or the end of the board is reached
+    // if opposing piece, add the position to the attacks array
+    // if not, break
+
+    // getAttackPosition(file, "increase", attacks, currentPosition, side);
+    getAttackPosition(file, "decrease", attacks, currentPosition, side);
+    // getAttackPosition(rank, "increase", attacks, currentPosition, side);
+    // getAttackPosition(rank, 'decrease', attacks, currentPosition, side);
+
+    
+    // let idxPlus = fileIndex + 1;
+    // while (!forwardBlocked) {
+    //   // iterate from fileIndex to end of file
+    //   let position = file[idxPlus];
+    //   let occupied = moveIsBlocked(position);
+
+    //   if (occupied === undefined) {
+    //     forwardBlocked = true;
+    //     break;
+    //   }
+
+    //   if (side === 'white' && occupied) {
+    //     if (isBlackPiece(occupied)) {
+    //       attacks.push(occupied);
+    //       forwardBlocked = true;
+    //     }
+    //   }
+      
+    //   if (side === 'black' && occupied) {
+    //     if (isWhitePiece(occupied)) {
+    //       attacks.push(occupied);
+    //       forwardBlocked = true;
+    //     }
+    //   }
+
+    //   idxPlus += 1;
+    // }
+    
+    // let idxMinus = fileIndex - 1;
+    // while (!backwardBlocked ) {
+    //   // iterate from fileIndex to start of file
+    //   let position = file[idxMinus];
+    //   let occupied = moveIsBlocked(position);
+
+    //   debugger;
+    //   if (occupied === undefined) {
+    //     backwardBlocked = true;
+    //     break;
+    //   }
+
+    //   if (side === 'white' && occupied) {
+    //     if (isBlackPiece(occupied)) {
+    //       attacks.push(occupied);
+    //       backwardBlocked = true;
+    //     }
+    //   }
+      
+    //   if (side === 'black' && occupied) {
+    //     if (isWhitePiece(occupied)) {
+    //       attacks.push(occupied);
+    //       backwardBlocked = true;
+    //     }
+    //   }
+
+    //   idxMinus -= 1;
+    // }
+    
+    // let idxLeft = rankIndex - 1;
+    // while (!leftBlocked) {
+    //   // iterate from rankIndex to start of rank
+    //   let position = rank[idxLeft];
+    //   let occupied = moveIsBlocked(position);
+
+    //   if (occupied === undefined) {
+    //     leftBlocked = true;
+    //     break;
+    //   }
+
+    //   if (side === 'white' && occupied) {
+    //     if (isBlackPiece(occupied)) {
+    //       attacks.push(occupied);
+    //       leftBlocked = true;
+    //     }
+    //   }
+      
+    //   if (side === 'black' && occupied) {
+    //     if (isWhitePiece(occupied)) {
+    //       attacks.push(occupied);
+    //       leftBlocked = true;
+    //     }
+    //   }
+
+    //   idxLeft -= 1;
+    // }
+    
+    // let idxRight = rankIndex + 1;
+    // while (!rightBlocked) {
+    //   // iterate from rankIndex to end of rank
+    //   let position = rank[idxRight];
+    //   let occupied = moveIsBlocked(position);
+
+    //   if (occupied === undefined) {
+    //     rightBlocked = true;
+    //     break;
+    //   }
+
+    //   if (side === 'white' && occupied) {
+    //     if (isBlackPiece(occupied)) {
+    //       attacks.push(occupied);
+    //       rightBlocked = true;
+    //     }
+    //   }
+      
+    //   if (side === 'black' && occupied) {
+    //     if (isWhitePiece(occupied)) {
+    //       attacks.push(occupied);
+    //       rightBlocked = true;
+    //     }
+    //   }
+
+    //   idxRight += 1;
+    // }
 
     debugger;
     return attacks;
@@ -293,7 +475,7 @@ const useBoard = () => {
     return attacks;
   }
 
-  function highlightAttack(piece: WhitePiece | BlackPiece, position: string, side: Sides) {
+  function highlightAttack(piece: WhitePiece | BlackPiece, position: string, side: Sides, moves: string[]) {
     let attacks: string[] = [];
 
     if (isPawn(piece)) {
@@ -550,8 +732,6 @@ const useBoard = () => {
           updatedMoves.push(currentBackwardFileMove);
         }
       }
-
-      debugger;
     }
 
 
