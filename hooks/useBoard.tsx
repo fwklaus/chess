@@ -268,18 +268,16 @@ const useBoard = () => {
         break;
       }
 
-      debugger;
       if (side === 'white' && occupied) {
         if (isBlackPiece(occupied)) {
-
-          attackPositions.push(occupied);
+          attackPositions.push(position);
           blocked = true;
         } else {
           blocked = true;
         }
       } else if (side === 'black' && occupied) {
         if (isWhitePiece(occupied)) {
-          attackPositions.push(occupied);
+          attackPositions.push(position);
           blocked = true;
         } else {
           blocked = true;
@@ -296,146 +294,14 @@ const useBoard = () => {
 
   function getRookAttack(currentPosition: string, side: Sides) {
     let attacks: string[] = [];
-    // let rank = rankMatcher(currentPosition);
-    // let file = fileMatcher(currentPosition);
-    let rank = getRank(currentPosition);
     let file = getFile(currentPosition);
-    let rankIndex = getIndex(currentPosition, rank);
-    let fileIndex = getIndex(currentPosition, file);
-    // let forwardBlocked = false;
-    // let backwardBlocked = false;
-    // let leftBlocked = false;
-    // let rightBlocked = false;
-
-
-    debugger;
+    let rank = getRank(currentPosition);
     
-    // use position to get rank and file
-    // iterate four ways all starting at current position
-    // iterate until a piece is encountered or the end of the board is reached
-    // if opposing piece, add the position to the attacks array
-    // if not, break
-
-    // getAttackPosition(file, "increase", attacks, currentPosition, side);
+    getAttackPosition(file, "increase", attacks, currentPosition, side);
     getAttackPosition(file, "decrease", attacks, currentPosition, side);
-    // getAttackPosition(rank, "increase", attacks, currentPosition, side);
-    // getAttackPosition(rank, 'decrease', attacks, currentPosition, side);
+    getAttackPosition(rank, "increase", attacks, currentPosition, side);
+    getAttackPosition(rank, 'decrease', attacks, currentPosition, side);
 
-    
-    // let idxPlus = fileIndex + 1;
-    // while (!forwardBlocked) {
-    //   // iterate from fileIndex to end of file
-    //   let position = file[idxPlus];
-    //   let occupied = moveIsBlocked(position);
-
-    //   if (occupied === undefined) {
-    //     forwardBlocked = true;
-    //     break;
-    //   }
-
-    //   if (side === 'white' && occupied) {
-    //     if (isBlackPiece(occupied)) {
-    //       attacks.push(occupied);
-    //       forwardBlocked = true;
-    //     }
-    //   }
-      
-    //   if (side === 'black' && occupied) {
-    //     if (isWhitePiece(occupied)) {
-    //       attacks.push(occupied);
-    //       forwardBlocked = true;
-    //     }
-    //   }
-
-    //   idxPlus += 1;
-    // }
-    
-    // let idxMinus = fileIndex - 1;
-    // while (!backwardBlocked ) {
-    //   // iterate from fileIndex to start of file
-    //   let position = file[idxMinus];
-    //   let occupied = moveIsBlocked(position);
-
-    //   debugger;
-    //   if (occupied === undefined) {
-    //     backwardBlocked = true;
-    //     break;
-    //   }
-
-    //   if (side === 'white' && occupied) {
-    //     if (isBlackPiece(occupied)) {
-    //       attacks.push(occupied);
-    //       backwardBlocked = true;
-    //     }
-    //   }
-      
-    //   if (side === 'black' && occupied) {
-    //     if (isWhitePiece(occupied)) {
-    //       attacks.push(occupied);
-    //       backwardBlocked = true;
-    //     }
-    //   }
-
-    //   idxMinus -= 1;
-    // }
-    
-    // let idxLeft = rankIndex - 1;
-    // while (!leftBlocked) {
-    //   // iterate from rankIndex to start of rank
-    //   let position = rank[idxLeft];
-    //   let occupied = moveIsBlocked(position);
-
-    //   if (occupied === undefined) {
-    //     leftBlocked = true;
-    //     break;
-    //   }
-
-    //   if (side === 'white' && occupied) {
-    //     if (isBlackPiece(occupied)) {
-    //       attacks.push(occupied);
-    //       leftBlocked = true;
-    //     }
-    //   }
-      
-    //   if (side === 'black' && occupied) {
-    //     if (isWhitePiece(occupied)) {
-    //       attacks.push(occupied);
-    //       leftBlocked = true;
-    //     }
-    //   }
-
-    //   idxLeft -= 1;
-    // }
-    
-    // let idxRight = rankIndex + 1;
-    // while (!rightBlocked) {
-    //   // iterate from rankIndex to end of rank
-    //   let position = rank[idxRight];
-    //   let occupied = moveIsBlocked(position);
-
-    //   if (occupied === undefined) {
-    //     rightBlocked = true;
-    //     break;
-    //   }
-
-    //   if (side === 'white' && occupied) {
-    //     if (isBlackPiece(occupied)) {
-    //       attacks.push(occupied);
-    //       rightBlocked = true;
-    //     }
-    //   }
-      
-    //   if (side === 'black' && occupied) {
-    //     if (isWhitePiece(occupied)) {
-    //       attacks.push(occupied);
-    //       rightBlocked = true;
-    //     }
-    //   }
-
-    //   idxRight += 1;
-    // }
-
-    debugger;
     return attacks;
   }
 
@@ -535,14 +401,10 @@ const useBoard = () => {
   }
 
   let getFile = (position: string) => {
-
-    debugger;
     return FILES_BOARD.find(file => file.includes(position));
   };
 
   let getRank = (position: string) => {
-
-    debugger;
     return RANKS_BOARD.find(rank => rank.includes(position));
   };
 
@@ -644,7 +506,7 @@ const useBoard = () => {
       let currentRankIdx = getIndex(currentRank, RANKS);
       let FILES_REVERSED = getCopy(FILES).reverse();
 
-      // files [1, 2, 3, 4, 5, 6, 7, 8]  backward -->  forward
+      // files [8, 7, 6, 5, 4, 3, 2, 1]  backward -->  forward
       if (side === 'black') {
         if (currentFile === file) {
           if (currentRankIdx < rankIndex) {
@@ -655,7 +517,7 @@ const useBoard = () => {
         }
       }
 
-      // files [8, 7, 6, 5, 4, 3, 2, 1]  backward --> forward
+      // files  [1, 2, 3, 4, 5, 6, 7, 8] backward --> forward
       if (side === 'white') {        
         if (currentFile === file) {
           currentFileIdx = getIndex(currentFile, FILES_REVERSED);
