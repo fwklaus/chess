@@ -12,6 +12,7 @@ function BoardList({positions}: {positions: Positions} ) {
       keyExtractor={(item) => item}
       numColumns={8}
       contentContainerStyle={styles.listContainer}
+      style={{overflow: 'hidden'}}
     />
   );
 }
@@ -27,8 +28,10 @@ export default function ChessBoard() {
   return (
     <View style={styles.container}>
       <Spacer flexValue={width < 1000 ? 0.75 : 1.75}/>
+      <Spacer flexValue={width < 600 ? 2 : 0.75}/>
       <BoardList positions={positions}/>
       <Spacer flexValue={width < 1000 ? 0.75 : 1.75}/>
+      <Spacer flexValue={width < 600 ? 2 : 0.75}/>
     </View>
   );
 }
@@ -39,7 +42,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   listContainer: {
     backgroundColor: 'black',

@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useLayoutEffect, useRef} from 'react';
-import {Pressable, StyleSheet, GestureResponderEvent} from 'react-native';
+import {Pressable, StyleSheet, GestureResponderEvent, useWindowDimensions} from 'react-native';
 import useBoard from '@/hooks/useBoard';
 import Piece from './Piece';
 
@@ -8,6 +8,7 @@ export default function Square({ item, index }: {item: string, index: number}){
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [isThreat, setIsThreat] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const {height} = useWindowDimensions();
   let background = colorTiles(index);
   const position = useRef(item); // references position
   let isColoredPosition = (position: string) => position === item;
@@ -33,7 +34,7 @@ export default function Square({ item, index }: {item: string, index: number}){
 
   const handleMouseEnter = (event: any) => {
     let isPiece = isElementPiece(event);
-
+    console.log(height);
     if (isPiece) {
       setIsHovered(true);
     }
@@ -62,7 +63,8 @@ export default function Square({ item, index }: {item: string, index: number}){
         styles.item, 
         isHovered ? {backgroundColor: 'white'} : {backgroundColor: background},
         isHighlighted ? {backgroundColor: 'green'} : null,
-        isThreat ? {backgroundColor: 'red'} : null
+        isThreat ? {backgroundColor: 'red'} : null,
+        height < 600 ? styles.smallItem : null
       ]}
       onHoverIn={handleMouseEnter}
       onHoverOut={handleMouseLeave}
@@ -82,4 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  smallItem: {
+    height: 50,
+  }
 });
