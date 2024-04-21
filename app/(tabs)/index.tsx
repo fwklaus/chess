@@ -1,10 +1,10 @@
 import { GestureResponderEvent, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
-import { Text, View } from '@/components/Themed';
+// import { Text, View } from '@/components/Themed';
 import ChessBoard from '@/components/ChessBoard';
 import useBoard from '@/hooks/useBoard';
 
 export default function PlayScreen() {
-  const {height} = useWindowDimensions();
+  // const {height} = useWindowDimensions();
   const {resetHighlightedMoves, resetAttackPositions} = useBoard();
 
   const handleClick = (e: GestureResponderEvent) => {
@@ -14,13 +14,13 @@ export default function PlayScreen() {
 
   return (
     <Pressable style={styles.container} onPress={handleClick}>
-      {height < 600 ? 
+      {/* {height < 600 ? 
         <></> :
         <>
           <Text style={styles.title}>Chess</Text>
           <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
         </>
-      }
+      } */}
       <ChessBoard />
     </Pressable>
   );

@@ -28,21 +28,21 @@ const useBoard = () => {
 
     // narrow piece type to WhitePieces and BlackPieces
     if (isWhitePiece(piece)) {
-      moves = highLightMoves(piece, position.current, 'white');
-      attackPositions = highlightAttack(piece, position.current, 'white', moves);
+      [moves, attackPositions] = highLightMoves(piece, position.current, 'white');
+      // attackPositions = highlightAttack(piece, position.current, 'white', moves);
     } else if (isBlackPiece(piece)) {
-      moves = highLightMoves(piece, position.current, 'black');
-      attackPositions = highlightAttack(piece, position.current, 'black', moves);
+      [moves, attackPositions] = highLightMoves(piece, position.current, 'black');
+      // attackPositions = highlightAttack(piece, position.current, 'black', moves);
     } else {
       console.log('Unreachable (at highlightMoves at useBoard)');
     }
 
     // pawn ✔️
     // rook ✔️
-    // knight
-    // bishop
-    // king
-    // queen
+    // knight --- occassional bug where the attack positions are not correctly highlighted
+    // bishop ✔️
+    // king ✔️
+    // queen ✔️
     setAttackPositions(attackPositions)
     setHighlighted(moves);
   }
@@ -97,6 +97,7 @@ const useBoard = () => {
 
   function getPawnMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
     let initialMove = isInitialPawnPosition(currentPosition)
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
@@ -137,14 +138,16 @@ const useBoard = () => {
     }
 
     moves = removeBlockedPawnMoves(moves);
+    attackPositions = getPawnAttack(currentPosition, side);
 
     // if last position, promote piece to queen for simplicity
 
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getRookMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
     let initialMove = isInitialRookPosition(currentPosition); // for castling
     let file = fileMatcher(currentPosition);
     let rank = rankMatcher(currentPosition);
@@ -166,12 +169,14 @@ const useBoard = () => {
     });
 
     moves = removeBlockedRookMoves(currentPosition, moves, side);
+    attackPositions = getRookAttack(currentPosition, side);
 
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getKnightMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
     let file = fileMatcher(currentPosition);
     let rank = rankMatcher(currentPosition);
 
@@ -187,35 +192,93 @@ const useBoard = () => {
         let leftPosition = row[fileIndex - 1];
         let rightPosition = row[fileIndex + 1];
 
-        
         if (leftPosition) {
-          moves.push(leftPosition);
+          let piece = getPiece(leftPosition);
+
+          if (moveIsBlocked(leftPosition)) {
+            if (side === 'white') {
+              if (isBlackPiece(piece)) {
+                attackPositions.push(leftPosition);
+              }
+            } else if (side === 'black') {
+              if (isWhitePiece(piece)) {
+                attackPositions.push(leftPosition);
+              }
+            }
+          } else {
+            moves.push(leftPosition);
+          }
         }
 
         if (rightPosition) {
-          moves.push(rightPosition);
+          let piece = getPiece(leftPosition);
+
+          if (moveIsBlocked(rightPosition)) {
+            if (side === 'white') {
+              if (isBlackPiece(piece)) {
+                attackPositions.push(rightPosition);
+              }
+            } else if (side === 'black') {
+              if (isWhitePiece(piece)) {
+                attackPositions.push(rightPosition);
+              }
+            }
+          } else {
+            moves.push(rightPosition);
+          }
         }
+
       } else if (Math.abs(rankIndex - currentIdx) === 1) {
         let leftPosition = row[fileIndex - 2];
         let rightPosition = row[fileIndex + 2];
 
         if (leftPosition) {
-          moves.push(leftPosition);
+          let piece = getPiece(leftPosition);
+
+          if (moveIsBlocked(leftPosition)) {
+            if (side === 'white') {
+              if (isBlackPiece(piece)) {
+                attackPositions.push(leftPosition);
+              }
+            } else if (side === 'black') {
+              if (isWhitePiece(piece)) {
+                attackPositions.push(leftPosition);
+              }
+            }
+          } else {
+            moves.push(leftPosition);
+          }
         }
 
         if (rightPosition) {
-          moves.push(rightPosition);
+          let piece = getPiece(leftPosition);
+
+          if (moveIsBlocked(rightPosition)) {
+            if (side === 'white') {
+              if (isBlackPiece(piece)) {
+                attackPositions.push(rightPosition);
+              }
+            } else if (side === 'black') {
+              if (isWhitePiece(piece)) {
+                attackPositions.push(rightPosition);
+              } 
+            }
+          } else {
+            moves.push(rightPosition);
+          }
         }
+
       }
     }
 
     moves = removeBlockedKnightMoves(moves);
 
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getBishopMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
     let rankIndex = getIndex(rank, RANKS);
@@ -225,34 +288,37 @@ const useBoard = () => {
     let forwardLt: string[] = [];
     let backRt: string[] = [];
     let backLt: string[] = []; 
+    let forwardLtAttacks: string[] = [];
+    let forwardRtAttacks: string[] = [];
+    let backLtAttacks: string[] = [];
+    let backRtAttacks: string[] = [];
 
-    forwardRt = getBishopMoves(forwardRt, fileIndex, rankIndex, 'fr');
-    forwardLt = getBishopMoves(forwardLt, fileIndex, rankIndex, 'fl');
-    backRt = getBishopMoves(backRt, fileIndex, rankIndex, 'br');
-    backLt = getBishopMoves(backLt, fileIndex, rankIndex, 'bl');
+    [forwardRt, forwardRtAttacks] = getBishopMoves(forwardRt, fileIndex, rankIndex, side,  'fr');
+    [forwardLt, forwardLtAttacks] = getBishopMoves(forwardLt, fileIndex, rankIndex, side,  'fl');
+    [backRt, backRtAttacks] = getBishopMoves(backRt, fileIndex, rankIndex, side,  'br');
+    [backLt, backLtAttacks] = getBishopMoves(backLt, fileIndex, rankIndex, side,  'bl');
 
     moves = forwardRt.concat(forwardLt).concat(backRt).concat(backLt);
+    attackPositions = forwardRtAttacks.concat(forwardLtAttacks).concat(backRtAttacks).concat(backLtAttacks);
 
-    moves = removeBlockedBishopMoves(moves);
-
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getQueenMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
-    let bishopMoves = getBishopMove(currentPosition, side);
-    let rookMoves = getRookMove(currentPosition, side);
+    let attackPositions: string[] = [];
+    let [bishopMoves, bishopAttackPositions] = getBishopMove(currentPosition, side);
+    let [rookMoves, rookAttackPositions] = getRookMove(currentPosition, side);
 
-    // once we remove blocked moves for bishop, will work as expected
     moves = bishopMoves.concat(rookMoves);
+    attackPositions = bishopAttackPositions.concat(rookAttackPositions);
 
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getKingMove(currentPosition: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
     let rank = rankMatcher(currentPosition);
     let file = fileMatcher(currentPosition);
     let rankIndex = getIndex(rank, RANKS);
@@ -269,17 +335,35 @@ const useBoard = () => {
       moves = moves.concat(row.slice(startFileIdx, stopFileIdx + 1));
     }
 
+    let movesCopy = moves.filter(move => move !== currentPosition);
+    moves = moves.filter(move => !moveIsBlocked(move));
 
-    moves = moves.filter(move => move !== currentPosition);
+    attackPositions = movesCopy.filter(position => {
+      if (moveIsBlocked(position)) {
+        let piece = getPiece(position);
+
+        if (side === 'black') {
+          if (isWhitePiece(piece)) {
+            return true;
+          }
+        } else if (side === 'white') {
+          if (isBlackPiece(piece)) {
+            return true;
+          }
+        }
+
+        return false;
+      } else {
+        return false;
+      }
+    });
 
     // check
     // checkmate
     // castling
     // stalemate
 
-    moves = removeBlockedKingMoves(moves);
-
-    return moves;
+    return [moves, attackPositions];
   }
 
   function getPawnAttack(currentPosition: string, side: Sides) {
@@ -332,89 +416,28 @@ const useBoard = () => {
     return attacks;
   }
 
-
-  function getKnightAttack(currentPosition: string, side: Sides) {
-    let attacks: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
-
-    
-    
-    debugger;
-    return attacks;
-  }
-
-  function getBishopAttack(currentPosition: string, side: Sides) {
-    let attacks: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
-
-    debugger;
-    return attacks;
-  }
-
-  function getQueenAttack(currentPosition: string, side: Sides) {
-    let attacks: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
-
-    debugger;
-    return attacks;
-  }
-
-  function getKingAttack(currentPosition: string, side: Sides) {
-    let attacks: string[] = [];
-    let rank = rankMatcher(currentPosition);
-    let file = fileMatcher(currentPosition);
-
-    debugger;
-    return attacks;
-  }
-
-  function highlightAttack(piece: WhitePiece | BlackPiece, position: string, side: Sides, moves: string[]) {
-    let attacks: string[] = [];
-
-    if (isPawn(piece)) {
-      attacks = getPawnAttack(position, side);
-    } else if (isRook(piece)){
-      attacks = getRookAttack(position, side);
-    } else if (isKnight(piece)){
-      attacks = getKnightAttack(position, side);
-    } else if (isBishop(piece)){
-      attacks = getBishopAttack(position, side);
-    } else if (isKing(piece)){
-      attacks = getKingAttack(position, side);
-    } else if (isQueen(piece)){
-      attacks = getQueenAttack(position, side);
-    } else {
-      let unreachableType: never = piece;
-      throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
-    }
-
-    return attacks;
-  }
-
   function highLightMoves(piece: WhitePiece | BlackPiece, position: string, side: Sides) {
     let moves: string[] = [];
+    let attackPositions: string[] = [];
 
     if (isPawn(piece)) {
-      moves = getPawnMove(position, side);
+      [moves, attackPositions] = getPawnMove(position, side);
     } else if (isRook(piece)){
-      moves = getRookMove(position, side);
+      [moves, attackPositions] = getRookMove(position, side);
     } else if (isKnight(piece)){
-      moves = getKnightMove(position, side);
+      [moves, attackPositions] = getKnightMove(position, side);
     } else if (isBishop(piece)){
-      moves = getBishopMove(position, side);
+      [moves, attackPositions] = getBishopMove(position, side);
     } else if (isKing(piece)){
-      moves = getKingMove(position, side);
+      [moves, attackPositions] = getKingMove(position, side);
     } else if (isQueen(piece)){
-      moves = getQueenMove(position, side);
+      [moves, attackPositions] = getQueenMove(position, side);
     } else {
       let unreachableType: never = piece;
       throw new Error(`Invalid Piece type: $${JSON.stringify(unreachableType)}`)
     }
 
-    return moves;
+    return [moves, attackPositions];
   }
 
   let rankMatcher = (position: string): number => {
@@ -455,9 +478,10 @@ const useBoard = () => {
 
   // move/attack helpers
 
-  function getBishopMoves(row: string[], fileIdx: number, rankIdx: number, type: 'fr' | 'fl' | 'br' | 'bl') {
+  function getBishopMoves(moves: string[], fileIdx: number, rankIdx: number, side: Sides, type: 'fr' | 'fl' | 'br' | 'bl') {
     let fileStart;
     let rankStart;
+    let attacks: string[] = [];
 
     if (type === 'fr' || type === 'br') {
       fileStart = fileIdx + 1;
@@ -480,7 +504,23 @@ const useBoard = () => {
       let currFile = FILES[currFileIdx];
       let currRank = RANKS[currRankIdx];  
       if (currRank && currFile) {
-        row.push(currFile + String(currRank));
+        let position = currFile + String(currRank);
+        if (moveIsBlocked(position)) {
+          let piece = getPiece(position);
+          
+          if (side === 'white') {
+            if (isBlackPiece(piece)) {
+              attacks.push(position);
+            }
+          } else if (side === 'black') {
+            if (isWhitePiece(piece)) {
+              attacks.push(position);
+            }
+          }
+          break;
+        } else {
+          moves.push(position);
+        }
       } else {
         break;
       }
@@ -498,7 +538,7 @@ const useBoard = () => {
       }
     } 
 
-    return row;
+    return [moves, attacks];
   }
 
   function getAttackRookPositions(row: string[], direction: 'increase' | 'decrease', attackPositions: string[], currentPosition: string, side: Sides) {
@@ -596,17 +636,6 @@ const useBoard = () => {
   }
 
   // remove occupied and blocked moves
-
-  function removeBlockedKingMoves(moves: string[]) {
-
-    return moves;
-  }
-
-  function removeBlockedBishopMoves(moves: string[]) {
-
-
-    return moves;
-  }
 
   function removeBlockedKnightMoves(moves: string[]) {
     moves = moves.filter(move => !moveIsBlocked(move));
@@ -743,6 +772,10 @@ const useBoard = () => {
   }
 
   function moveIsBlocked(position: string) {
+    return positions[position];
+  }
+
+  function getPiece(position: string) {
     return positions[position];
   }
 

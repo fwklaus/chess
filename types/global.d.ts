@@ -34,4 +34,8 @@ declare global {
   type Collection = string[] | number[];
 
   type Sides = 'white' | 'black';
+
+  interface BishopMoves {
+    [key: string]: string[]
+  }
 }
